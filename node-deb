@@ -238,7 +238,7 @@ if [ -z "$1" ]; then
   die 'You must pick at least one file or directory to add to the Debian package'
 fi
 
-for file in $files; do
+for file in $@; do
   if ! [ -e $file ]; then
     die "File does not exist: '$file'. Aborting"
   fi
@@ -485,12 +485,19 @@ chmod -R 0755 "$deb_dir/DEBIAN/" \
 
 # Copy all files into temporary Debian dir
 log_info 'Recursively copying files into Debian directory'
+
 find "$@" -maxdepth 1 -print0 | {
   while IFS= read -r -d '' file; do
     log_debug "Copying: $file"
-    rsync -rRq "$file" "$deb_dir/usr/share/$package_name/app/"
+    if [[ "$file" == *node_modules* ]]; then
+      log_info "WARNING! Skipping file $file because 'npm install' is now run when the Debian package is installed."
+    else
+      rsync -rRq "$file" "$deb_dir/usr/share/$package_name/app/"
+    fi
   done
 }
+
+cp './package.json' "$deb_dir/usr/share/$package_name/app/"
 
 # Calculate md5sums
 if [ "$no_md5sums" -eq 0 ]; then
