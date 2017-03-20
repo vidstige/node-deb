@@ -3,3 +3,6 @@
 *.log
 .vagrant
 *.swp
+
+/mbox-*/
+/mbox.tar.gz
